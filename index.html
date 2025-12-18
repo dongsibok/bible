@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>성경 암송</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Crimson+Pro:wght@600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c1810;
+            --secondary: #8b6f47;
+            --bg-main: #ffffff;
+            --text-primary: #111111;
+            --text-secondary: #777777;
+            --border: #eeeeee;
+            --bottom-nav-height: 65px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            /* 본고딕(Gothic) 계열로 변경하여 가독성 향상 */
+            font-family: 'Noto Sans KR', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            /* 전체 화면 수직 중앙 배치를 위한 설정 */
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* 헤더 최소화 */
+        .app-header {
+            padding: 12px 20px;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .app-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 18px; /* 크기 축소 */
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        /* 진행 바 상단 밀착 */
+        .progress-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+        }
+
+        .progress-bar { height: 100%; background: #f0f0f0; }
+        .progress-fill { height: 100%; background: var(--secondary); transition: width 0.4s; }
+
+        /* 메인 컨텐츠: 수직/수평 중앙 배치 */
+        .app-container {
+            flex: 1;
+            display: flex;
+            align-items: center; /* 수직 중앙 */
+            justify-content: center; /* 수평 중앙 */
+            padding: 10px; /* 좌우 여백 최소화 */
+            width: 100%;
+        }
+
+        #studyTab, #addTab, #configTab {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        /* 말씀 카드 디자인 */
+        .card {
+            width: 100%;
+            padding: 20px 10px;
+            text-align: center;
+        }
+
+        .verse-reference {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.2rem;
+            color: var(--secondary);
+            margin-bottom: 25px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        /* 말씀 본문: 폰트 크기 대폭 확대 및 행간 조절 */
+        .verse-content {
+            font-size: 2.1rem; /* 압도적인 크기 */
+            font-weight: 700;
+            line-height: 1.7; /* 눈이 편안한 행간 */
+            word-break: keep-all; /* 단어 단위 줄바꿈 */
+            color: var(--text-primary);
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 모드 및 액션 버튼 */
+        .view-modes {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 40px;
+        }
+
+        .view-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .view-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .review-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .review-btn {
+            height: 60px;
+            border-radius: 12px;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .btn-again { background: #f5f5f5; color: #888; }
+        .btn-good { background: #fff4e5; color: #d4a574; }
+        .btn-easy { background: #ebf5ee; color: #4a7c59; }
+
+        /* 하단 내비게이션 */
+        .bottom-nav {
+            height: var(--bottom-nav-height);
+            background: white;
+            display: flex;
+            border-top: 1px solid var(--border);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-tab {
+            flex: 1;
+            border: none;
+            background: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #bbb;
+        }
+
+        .nav-tab.active { color: var(--primary); }
+        .nav-tab-icon { font-size: 20px; margin-bottom: 3px; }
+
+        /* 빈칸 및 힌트 */
+        .blank { color: transparent; border-bottom: 3px solid #ddd; padding: 0 4px; }
+        .blank.revealed { color: #d4a574; border-bottom-color: #d4a574; }
+        .hint-char { color: var(--primary); font-weight: 800; border-bottom: 1px solid #eee; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="progress-container">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <header class="app-header">
+        <div class="app-title">Scripture</div>
+        <div id="progressText" style="font-size: 12px; color: #999;">0/0</div>
+    </header>
+
+    <main class="app-container">
+        <div id="studyTab" class="tab-content active">
+            <div id="studyCard"></div>
+        </div>
+
+        <div id="addTab" class="tab-content">
+            <div class="card" style="text-align: left;">
+                <h2 style="margin-bottom:20px; font-size: 20px;">새 구절</h2>
+                <input type="text" id="newReference" class="view-btn" style="width:100%; text-align:left; margin-bottom:10px;" placeholder="참조 (예: 요 3:16)">
+                <textarea id="newText" class="view-btn" style="width:100%; height:150px; text-align:left;" placeholder="말씀 내용을 입력하세요"></textarea>
+                <button class="view-btn active" style="width:100%; margin-top:15px; height:50px;" onclick="addNewVerse()">저장하기</button>
+            </div>
+        </div>
+
+        <div id="configTab" class="tab-content">
+            <div class="card">
+                <h2 style="margin-bottom:20px; font-size: 20px;">설정</h2>
+                <input type="text" id="scriptUrl" class="view-btn" style="width:100%; text-align:left; margin-bottom:10px;" placeholder="Google Script URL">
+                <button class="view-btn active" style="width:100%; height:50px;" onclick="loadDataFromSheet()">데이터 동기화</button>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <button class="nav-tab active" data-tab="study"><span class="nav-tab-icon">📖</span>암송</button>
+        <button class="nav-tab" data-tab="add"><span class="nav-tab-icon">✍️</span>추가</button>
+        <button class="nav-tab" data-tab="config"><span class="nav-tab-icon">⚙️</span>설정</button>
+    </nav>
+
+    <script>
+        // 핵심 로직 유지 및 UI 렌더링 최적화
+        let bibleVerses = [];
+        let currentVerseIndex = 0;
+        let viewMode = 'full';
+        let reviewQueue = [];
+
+        const STORAGE_KEY = 'bible_review_schedule';
+        const SCRIPT_URL_KEY = 'google_script_url';
+        const VERSES_KEY = 'bible_verses_cache';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+            });
+
+            const savedUrl = localStorage.getItem(SCRIPT_URL_KEY);
+            if (savedUrl) document.getElementById('scriptUrl').value = savedUrl;
+
+            const cachedVerses = localStorage.getItem(VERSES_KEY);
+            if (cachedVerses) {
+                try {
+                    bibleVerses = JSON.parse(cachedVerses);
+                    initApp();
+                } catch (e) { console.error(e); }
+            }
+        });
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.tab === tabName));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        async function loadDataFromSheet() {
+            const url = document.getElementById('scriptUrl').value.trim();
+            if (!url) return alert('URL을 입력하세요');
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                bibleVerses = data;
+                localStorage.setItem(SCRIPT_URL_KEY, url);
+                localStorage.setItem(VERSES_KEY, JSON.stringify(bibleVerses));
+                initApp();
+                switchTab('study');
+            } catch (e) { alert('동기화 실패'); }
+        }
+
+        function renderStudyCard() {
+            const container = document.getElementById('studyCard');
+            if (reviewQueue.length === 0) {
+                container.innerHTML = `<div class="card"><h2>오늘의 암송 완료! 🎉</h2></div>`;
+                return;
+            }
+
+            const verse = reviewQueue[currentVerseIndex];
+            let verseHtml = verse.text;
+
+            if (viewMode === 'blank') {
+                verse.keywords?.forEach(kw => {
+                    const regex = new RegExp(kw, 'g');
+                    verseHtml = verseHtml.replace(regex, `<span class="blank">${kw}</span>`);
+                });
+            } else if (viewMode === 'hint') {
+                verseHtml = verse.text.split(' ').map(w => `<span class="hint-char">${w[0]}</span>${'·'.repeat(w.length-1)}`).join(' ');
+            }
+
+            container.innerHTML = `
+                <div class="card">
+                    <div class="verse-reference">${verse.reference}</div>
+                    <div class="verse-content">${verseHtml}</div>
+                    
+                    <div class="view-modes">
+                        <button class="view-btn ${viewMode === 'full' ? 'active' : ''}" onclick="setViewMode('full')">전체</button>
+                        <button class="view-btn ${viewMode === 'blank' ? 'active' : ''}" onclick="toggleBlank()">빈칸</button>
+                        <button class="view-btn ${viewMode === 'hint' ? 'active' : ''}" onclick="setViewMode('hint')">초성</button>
+                    </div>
+
+                    <div class="review-actions">
+                        <button class="review-btn btn-again" onclick="handleReview(0)">다시</button>
+                        <button class="review-btn btn-good" onclick="handleReview(1)">보통</button>
+                        <button class="review-btn btn-easy" onclick="handleReview(3)">쉬움</button>
+                    </div>
+                </div>
+            `;
+            updateProgress();
+        }
+
+        function setViewMode(m) { viewMode = m; renderStudyCard(); }
+        function toggleBlank() {
+            if (viewMode === 'blank') document.querySelectorAll('.blank').forEach(b => b.classList.toggle('revealed'));
+            else setViewMode('blank');
+        }
+
+        function handleReview(days) {
+            const verse = reviewQueue[currentVerseIndex];
+            const schedule = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            const d = new Date(); d.setDate(d.getDate() + days);
+            schedule[verse.id] = d.toISOString().split('T')[0];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(schedule));
+            
+            reviewQueue.splice(currentVerseIndex, 1);
+            if (currentVerseIndex >= reviewQueue.length) currentVerseIndex = 0;
+            viewMode = 'full';
+            renderStudyCard();
+        }
+
+        function updateProgress() {
+            const total = bibleVerses.length;
+            const rem = reviewQueue.length;
+            const per = total > 0 ? ((total - rem) / total) * 100 : 0;
+            document.getElementById('progressFill').style.width = per + '%';
+            document.getElementById('progressText').innerText = `${total - rem}/${total}`;
+        }
+
+        function initApp() {
+            const schedule = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            const today = new Date().toISOString().split('T')[0];
+            reviewQueue = bibleVerses.filter(v => !schedule[v.id] || schedule[v.id] <= today);
+            renderStudyCard();
+        }
+    </script>
+</body>
+</html>
