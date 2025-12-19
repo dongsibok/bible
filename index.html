@@ -3,19 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <title>성경 암송</title>
-<link rel="manifest" href="manifest.json">
-  <!-- 즉시 리다이렉트 -->
-  <meta http-equiv="refresh" content="0; url=https://script.google.com/macros/s/AKfycbwquiUyLr1-k3IAnWBiO1mUfwijUF6povkYFJqffVLYhF4ySJbYXn1VqXlW5hpEYAUs/exec">
 
-  <!-- JS 백업 -->
-  <script>
-    location.replace("https://script.google.com/macros/s/AKfycbwquiUyLr1-k3IAnWBiO1mUfwijUF6povkYFJqffVLYhF4ySJbYXn1VqXlW5hpEYAUs/exec");
-  </script>
-
-  <!-- 모바일 홈화면용 -->
+  <!-- PWA / 홈화면 -->
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#2c1810">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="성경암송">
 </head>
-<body>
-  이동 중입니다…
+
+<body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
+  <div>
+    이동 중입니다…<br><br>
+    <a id="manualLink" href="#">열리지 않으면 여기를 눌러주세요</a>
+  </div>
+
+  <script>
+    const TARGET_URL =
+      "https://script.google.com/macros/s/AKfycbwquiUyLr1-k3IAnWBiO1mUfwijUF6povkYFJqffVLYhF4ySJbYXn1VqXlW5hpEYAUs/exec";
+
+    document.getElementById("manualLink").href = TARGET_URL;
+
+    // 삼성 인터넷 대응: DOM 로드 후 이동
+    window.addEventListener("DOMContentLoaded", () => {
+      setTimeout(() => {
+        window.location.href = TARGET_URL;
+      }, 100);
+    });
+  </script>
 </body>
 </html>
